@@ -13,8 +13,21 @@ public class assignment11 {
         }
     }
 
-    static ArrayList<Edge>[] createGraph(int V) {
-        ArrayList<Edge>[] graph = new ArrayList[V];
+    static class Vertex {
+        int id;
+        int color;
+
+        Vertex(int id) {
+            this.id = id;
+            this.color = 0;
+        }
+    }
+
+    static ArrayList<Integer>[] graph;
+    static Vertex[] vertices;
+
+    static void createGraph(int V) {
+        graph = new ArrayList[V];
 
         for (int i = 0; i < V; i++) {
             graph[i] = new ArrayList<>();
@@ -28,51 +41,53 @@ public class assignment11 {
             int s = sc.nextInt();
             int d = sc.nextInt();
 
-            graph[s].add(new Edge(s, d));
-            graph[d].add(new Edge(d, s));
+            graph[s].add(d);
+            graph[d].add(s);
         }
-
-        return graph;
     }
 
-    static int findMinColors(ArrayList<Edge>[] graph, int V) {
-    for (int m = 1; m <= V; m++) {
-        int[] color = new int[V];
+    static int findMinColors(int V) {
+        for (int i = 0; i < V; i++) {
+            vertices[i].color = 0;
+        }
 
-        if (solveColoring(graph, m, color, 0, V)) {
-            System.out.println("\nMinimum colors required: " + m);
+        for (int m = 1; m <= V; m++) {
 
-            System.out.println("Color assignment:");
-            for (int i = 0; i < V; i++) {
-                System.out.println("Vertex " + i + " -> Color " + color[i]);
+            if (solveColoring(m, 0, V)) {
+                System.out.println("\nMinimum colors required: " + m);
+
+                System.out.println("Color assignment:");
+                for (int i = 0; i < V; i++) {
+                    System.out.println("Vertex " + i + " -> Color " + vertices[i].color);
+                }
+
+                return m;
             }
-
-            return m;
         }
+        return V;
     }
-    return V;
-}
 
-    static boolean isSafeColor(int v, ArrayList<Edge>[] graph, int[] color, int c) {
-        for (Edge e : graph[v]) {
-            if (color[e.dest] == c) {
+    static boolean isSafeColor(int v, ArrayList<Integer>[] graph, Vertex[] vertices, int c) {
+        for (int neighbor : graph[v]) {
+            if (vertices[neighbor].color == c) {
                 return false;
             }
         }
         return true;
     }
 
-    static boolean solveColoring(ArrayList<Edge>[] graph, int m, int[] color, int v, int V) {
-        if (v == V) return true;
+    static boolean solveColoring(int m, int v, int V) {
+        if (v == V)
+            return true;
 
         for (int c = 1; c <= m; c++) {
-            if (isSafeColor(v, graph, color, c)) {
-                color[v] = c;
+            if (isSafeColor(v, graph, vertices, c)) {
+                vertices[v].color = c;
 
-                if (solveColoring(graph, m, color, v + 1, V))
+                if (solveColoring(m, v + 1, V))
                     return true;
 
-                color[v] = 0;
+                vertices[v].color = 0;
             }
         }
         return false;
@@ -82,24 +97,30 @@ public class assignment11 {
         System.out.print("Enter number of vertices: ");
         int V = sc.nextInt();
 
-        ArrayList<Edge>[] graph = createGraph(V);
-
         System.out.print("Enter number of colors: ");
         int m = sc.nextInt();
 
-        int[] color = new int[V];
+        createGraph(V);
 
-        if (!solveColoring(graph, m, color, 0, V)) {
-            System.out.println("No solution exists");
-            return;
-        }
-
-        System.out.println("Color assignment:");
+        vertices = new Vertex[V];
         for (int i = 0; i < V; i++) {
-            System.out.println("Vertex " + i + " -> Color " + color[i]);
+            vertices[i] = new Vertex(i);
         }
 
-        findMinColors(graph, V);
+        boolean result = solveColoring(m, 0, V);
+
+        if (!result) {
+            System.out.println("No solution exists");
+        }
+
+        if (result) {
+            System.out.println("Color assignment:");
+            for (int i = 0; i < V; i++) {
+                System.out.println("Vertex " + i + " -> Color " + vertices[i].color);
+            }
+        }
+
+        findMinColors(V);
 
     }
 
